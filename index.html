@@ -5,35 +5,22 @@
     <title>My First Mini App</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-      body {
-        font-family: sans-serif;
-        text-align: center;
-        padding: 20px;
-      }
-      button {
-        padding: 10px 20px;
-        background: #2481cc;
-        color: white;
-        border: none;
-        border-radius: 5px;
-        cursor: pointer;
-      }
-    </style>
-  </head>
-  <body>
-    <h1>Привет, это мой Mini App!</h1>
-    <button id="mainButton">Сказать "Привет" в чат</button>
+      <body>
+    <div id="container">
+        <h2>Мои задачи 📝</h2>
+        
+        <div class="input-group">
+            <input type="text" id="todoInput" placeholder="Что нужно сделать?">
+            <button id="addBtn">➕</button>
+        </div>
 
+        <ul id="todoList"></ul>
+    </div>
+
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script>
-      // Инициализируем объект WebApp
-      const tg = window.Telegram.WebApp;
-      tg.expand(); // Разворачиваем приложение на весь экран
-
-      const btn = document.getElementById("mainButton");
-      btn.addEventListener("click", () => {
-        tg.sendData("Кнопка нажата!"); // Отправляем данные боту
-        tg.close(); // Закрываем приложение
-      });
+        // Тут будет наша логика (см. Шаг 3)
     </script>
-  </body>
+</body>
 </html>
+
