@@ -1,302 +1,658 @@
 <!DOCTYPE html>
 <html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, user-scalable=no"
+    />
     <title>Upgrade Me: Ultimate</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        :root {
-            --tg-bg: var(--tg-theme-bg-color, #ffffff);
-            --tg-text: var(--tg-theme-text-color, #000000);
-            --tg-link: var(--tg-theme-link-color, #2481cc);
-            --tg-sec-bg: var(--tg-theme-secondary-bg-color, #f4f4f5);
-            --gold: #ffcf40;
+      :root {
+        --tg-bg: var(--tg-theme-bg-color, #ffffff);
+        --tg-text: var(--tg-theme-text-color, #000000);
+        --tg-link: var(--tg-theme-link-color, #2481cc);
+        --tg-sec-bg: var(--tg-theme-secondary-bg-color, #f4f4f5);
+        --gold: #ffcf40;
+      }
+
+      body {
+        font-family: sans-serif;
+        background: var(--tg-bg);
+        color: var(--tg-text);
+        margin: 0;
+        padding-bottom: 80px;
+        overflow-x: hidden;
+      }
+
+      /* Хедер */
+      .header {
+        display: flex;
+        justify-content: space-between;
+        padding: 15px;
+        background: var(--tg-sec-bg);
+        font-weight: bold;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+      }
+      .coin-balance {
+        color: var(--gold);
+        font-size: 18px;
+      }
+
+      /* Питомец */
+      #pet-container {
+        position: fixed;
+        top: 70px;
+        right: 10px;
+        font-size: 40px;
+        z-index: 100;
+        display: none;
+        animation: float 2s infinite ease-in-out;
+      }
+      @keyframes float {
+        0%,
+        100% {
+          transform: translateY(0);
         }
+        50% {
+          transform: translateY(-10px);
+        }
+      }
 
-        body { font-family: sans-serif; background: var(--tg-bg); color: var(--tg-text); margin: 0; padding-bottom: 80px; overflow-x: hidden; }
+      /* Навигация страниц */
+      .page {
+        display: none;
+        padding: 15px;
+        animation: fadeIn 0.3s;
+      }
+      .active {
+        display: block;
+      }
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
 
-        /* Хедер */
-        .header { display: flex; justify-content: space-between; padding: 15px; background: var(--tg-sec-bg); font-weight: bold; position: sticky; top: 0; z-index: 10; }
-        .coin-balance { color: var(--gold); font-size: 18px; }
+      /* Карточки и Сетки */
+      .meditation-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+        margin-top: 10px;
+      }
+      .med-card {
+        aspect-ratio: 1/1;
+        background: var(--tg-sec-bg);
+        border-radius: 20px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid rgba(0, 0, 0, 0.05);
+        cursor: pointer;
+        text-align: center;
+      }
+      .med-card .icon {
+        font-size: 32px;
+        margin-bottom: 8px;
+      }
 
-        /* Питомец */
-        #pet-container { position: fixed; top: 70px; right: 10px; font-size: 40px; z-index: 100; display: none; animation: float 2s infinite ease-in-out; }
-        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+      .info-card {
+        background: var(--tg-sec-bg);
+        border-radius: 20px;
+        padding: 15px;
+        margin-bottom: 15px;
+      }
 
-        /* Навигация страниц */
-        .page { display: none; padding: 15px; animation: fadeIn 0.3s; }
-        .active { display: block; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+      /* Плеер и Оверлеи */
+      .overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: var(--tg-bg);
+        z-index: 500;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+      }
+      .blob {
+        position: absolute;
+        width: 300px;
+        height: 300px;
+        background: linear-gradient(45deg, var(--tg-link), #a2d2ff);
+        filter: blur(80px);
+        border-radius: 50%;
+        z-index: -1;
+        animation: move 8s infinite alternate ease-in-out;
+      }
+      @keyframes move {
+        from {
+          transform: translate(-30%, -30%);
+        }
+        to {
+          transform: translate(30%, 30%);
+        }
+      }
 
-        /* Карточки и Сетки */
-        .meditation-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 10px; }
-        .med-card { aspect-ratio: 1/1; background: var(--tg-sec-bg); border-radius: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 1px solid rgba(0,0,0,0.05); cursor: pointer; text-align: center; }
-        .med-card .icon { font-size: 32px; margin-bottom: 8px; }
+      /* Кнопки и формы */
+      .btn-main {
+        background: var(--tg-link);
+        color: white;
+        border: none;
+        border-radius: 12px;
+        padding: 15px;
+        width: 100%;
+        font-weight: bold;
+        margin-top: 10px;
+        cursor: pointer;
+      }
+      input,
+      select {
+        width: 100%;
+        padding: 12px;
+        margin: 8px 0;
+        border-radius: 10px;
+        border: 1px solid #ccc;
+        background: var(--tg-bg);
+        color: var(--tg-text);
+        box-sizing: border-box;
+      }
 
-        .info-card { background: var(--tg-sec-bg); border-radius: 20px; padding: 15px; margin-bottom: 15px; }
+      /* Таб-бар */
+      .tab-bar {
+        position: fixed;
+        bottom: 0;
+        width: 100%;
+        display: flex;
+        background: var(--tg-sec-bg);
+        height: 65px;
+        border-top: 1px solid rgba(0, 0, 0, 0.1);
+      }
+      .tab-item {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        font-size: 10px;
+        opacity: 0.5;
+        color: var(--tg-text);
+        text-decoration: none;
+      }
+      .active-tab {
+        opacity: 1;
+        color: var(--tg-link);
+        font-weight: bold;
+      }
 
-        /* Плеер и Оверлеи */
-        .overlay { display: none; position: fixed; inset: 0; background: var(--tg-bg); z-index: 500; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
-        .blob { position: absolute; width: 300px; height: 300px; background: linear-gradient(45deg, var(--tg-link), #a2d2ff); filter: blur(80px); border-radius: 50%; z-index: -1; animation: move 8s infinite alternate ease-in-out; }
-        @keyframes move { from { transform: translate(-30%, -30%); } to { transform: translate(30%, 30%); } }
+      /* Прогресс-бар плеера */
+      .progress-container {
+        width: 80%;
+        height: 6px;
+        background: rgba(0, 0, 0, 0.1);
+        border-radius: 3px;
+        margin: 25px 0;
+        overflow: hidden;
+      }
+      #progress-fill {
+        width: 0%;
+        height: 100%;
+        background: var(--tg-link);
+      }
 
-        /* Кнопки и формы */
-        .btn-main { background: var(--tg-link); color: white; border: none; border-radius: 12px; padding: 15px; width: 100%; font-weight: bold; margin-top: 10px; cursor: pointer; }
-        input, select { width: 100%; padding: 12px; margin: 8px 0; border-radius: 10px; border: 1px solid #ccc; background: var(--tg-bg); color: var(--tg-text); box-sizing: border-box; }
-
-        /* Таб-бар */
-        .tab-bar { position: fixed; bottom: 0; width: 100%; display: flex; background: var(--tg-sec-bg); height: 65px; border-top: 1px solid rgba(0,0,0,0.1); }
-        .tab-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 10px; opacity: 0.5; color: var(--tg-text); text-decoration: none; }
-        .active-tab { opacity: 1; color: var(--tg-link); font-weight: bold; }
-
-        /* Прогресс-бар плеера */
-        .progress-container { width: 80%; height: 6px; background: rgba(0,0,0,0.1); border-radius: 3px; margin: 25px 0; overflow: hidden; }
-        #progress-fill { width: 0%; height: 100%; background: var(--tg-link); }
-
-        /* История еды */
-        #food-history { max-height: 120px; overflow-y: auto; text-align: left; margin-top: 10px; font-size: 14px; }
-        .history-item { padding: 5px 0; border-bottom: 1px solid rgba(0,0,0,0.05); }
+      /* История еды */
+      #food-history {
+        max-height: 120px;
+        overflow-y: auto;
+        text-align: left;
+        margin-top: 10px;
+        font-size: 14px;
+      }
+      .history-item {
+        padding: 5px 0;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+      }
     </style>
-</head>
-<body>
-
+  </head>
+  <body>
     <div id="pet-container">🐱</div>
 
     <div class="header">
-        <span>Upgrade Me</span>
-        <div class="coin-balance">🪙 <span id="coinCount">0</span></div>
+      <span>Upgrade Me</span>
+      <div class="coin-balance">🪙 <span id="coinCount">0</span></div>
     </div>
 
     <div id="meditation" class="page active">
-        <h3>Медитации 🧘</h3>
-        <div class="meditation-grid">
-            <div class="med-card" onclick="openPlayer('Сон', '🌙', 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3')"><span class="icon">🌙</span><span>Сон</span></div>
-            <div class="med-card" onclick="openPlayer('Благодарность', '🙏', 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3')"><span class="icon">🙏</span><span>Благодарность</span></div>
-            <div class="med-card" onclick="openPlayer('Счастье', '☀️', 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3')"><span class="icon">☀️</span><span>Счастье</span></div>
-            <div class="med-card" onclick="openPlayer('Фокус', '🎯', 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3')"><span class="icon">🎯</span><span>Фокус</span></div>
-            <div class="med-card" onclick="openPlayer('Энергия', '⚡', 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3')"><span class="icon">⚡</span><span>Энергия</span></div>
-            <div class="med-card" onclick="openPlayer('На день', '🌅', 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-5.mp3')"><span class="icon">🌅</span><span>На день</span></div>
+      <h3>Медитации 🧘</h3>
+      <div class="meditation-grid">
+        <div
+          class="med-card"
+          onclick="openPlayer('Сон', '🌙', 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3')"
+        >
+          <span class="icon">🌙</span><span>Сон</span>
         </div>
+        <div
+          class="med-card"
+          onclick="openPlayer('Благодарность', '🙏', 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3')"
+        >
+          <span class="icon">🙏</span><span>Благодарность</span>
+        </div>
+        <div
+          class="med-card"
+          onclick="openPlayer('Счастье', '☀️', 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3')"
+        >
+          <span class="icon">☀️</span><span>Счастье</span>
+        </div>
+        <div
+          class="med-card"
+          onclick="openPlayer('Фокус', '🎯', 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3')"
+        >
+          <span class="icon">🎯</span><span>Фокус</span>
+        </div>
+        <div
+          class="med-card"
+          onclick="openPlayer('Энергия', '⚡', 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3')"
+        >
+          <span class="icon">⚡</span><span>Энергия</span>
+        </div>
+        <div
+          class="med-card"
+          onclick="openPlayer('На день', '🌅', 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-5.mp3')"
+        >
+          <span class="icon">🌅</span><span>На день</span>
+        </div>
+      </div>
     </div>
 
     <div id="bju" class="page">
-        <h3>Трекер БЖУ 🥗</h3>
-        <div id="bju-setup">
-            <p>Параметры для расчета нормы:</p>
-            <input type="number" id="weight" placeholder="Вес (кг)">
-            <input type="number" id="height" placeholder="Рост (см)">
-            <input type="number" id="age" placeholder="Возраст">
-            <select id="gender">
-                <option value="male">Мужчина</option>
-                <option value="female">Женщина</option>
-            </select>
-            <button class="btn-main" onclick="calcBJU()">Рассчитать</button>
+      <h3>Трекер БЖУ 🥗</h3>
+      <div id="bju-setup">
+        <p>Параметры для расчета нормы:</p>
+        <input type="number" id="weight" placeholder="Вес (кг)" />
+        <input type="number" id="height" placeholder="Рост (см)" />
+        <input type="number" id="age" placeholder="Возраст" />
+        <select id="gender">
+          <option value="male">Мужчина</option>
+          <option value="female">Женщина</option>
+        </select>
+        <button class="btn-main" onclick="calcBJU()">Рассчитать</button>
+      </div>
+
+      <div id="bju-tracker" style="display: none">
+        <div class="info-card">
+          <h2 id="curr-cal">Осталось: 0 ккал</h2>
+          <div
+            style="
+              display: flex;
+              justify-content: space-around;
+              margin-top: 10px;
+            "
+          >
+            <div><b>Б:</b> <span id="curr-b">0</span>г</div>
+            <div><b>Ж:</b> <span id="curr-j">0</span>г</div>
+            <div><b>У:</b> <span id="curr-u">0</span>г</div>
+          </div>
         </div>
 
-        <div id="bju-tracker" style="display:none;">
-            <div class="info-card">
-                <h2 id="curr-cal">Осталось: 0 ккал</h2>
-                <div style="display: flex; justify-content: space-around; margin-top: 10px;">
-                    <div><b>Б:</b> <span id="curr-b">0</span>г</div>
-                    <div><b>Ж:</b> <span id="curr-j">0</span>г</div>
-                    <div><b>У:</b> <span id="curr-u">0</span>г</div>
-                </div>
-            </div>
-
-            <div class="info-card">
-                <h4>Добавить еду</h4>
-                <input type="text" id="food-name" placeholder="Название блюда">
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-                    <input type="number" id="f-cal" placeholder="Ккал">
-                    <input type="number" id="f-b" placeholder="Белки">
-                    <input type="number" id="f-j" placeholder="Жиры">
-                    <input type="number" id="f-u" placeholder="Углеводы">
-                </div>
-                <button class="btn-main" onclick="addMeal()">Я поел(а) 🍽️</button>
-            </div>
-
-            <div class="info-card">
-                <h4>История за сегодня</h4>
-                <div id="food-history"></div>
-            </div>
-            
-            <button onclick="resetBJU()" style="background:none; border:none; color:var(--tg-hint); width:100%;">Сбросить профиль</button>
+        <div class="info-card">
+          <h4>Добавить еду</h4>
+          <input type="text" id="food-name" placeholder="Название блюда" />
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px">
+            <input type="number" id="f-cal" placeholder="Ккал" />
+            <input type="number" id="f-b" placeholder="Белки" />
+            <input type="number" id="f-j" placeholder="Жиры" />
+            <input type="number" id="f-u" placeholder="Углеводы" />
+          </div>
+          <button class="btn-main" onclick="addMeal()">Я поел(а) 🍽️</button>
         </div>
+
+        <div class="info-card">
+          <h4>История за сегодня</h4>
+          <div id="food-history"></div>
+        </div>
+
+        <button
+          onclick="resetBJU()"
+          style="
+            background: none;
+            border: none;
+            color: var(--tg-hint);
+            width: 100%;
+          "
+        >
+          Сбросить профиль
+        </button>
+      </div>
     </div>
 
     <div id="workout" class="page">
-        <h3>Тренировки 💪</h3>
-        <div class="med-card" style="width:100%; aspect-ratio: auto; padding: 20px; margin-bottom: 10px;" onclick="initWorkout('Трицепс')">💪 Трицепс</div>
-        <div class="med-card" style="width:100%; aspect-ratio: auto; padding: 20px;" onclick="initWorkout('Бицепс')">✊ Бицепс</div>
+      <h3>Тренировки 💪</h3>
+      <div
+        class="med-card"
+        style="
+          width: 100%;
+          aspect-ratio: auto;
+          padding: 20px;
+          margin-bottom: 10px;
+        "
+        onclick="initWorkout('Трицепс')"
+      >
+        💪 Трицепс
+      </div>
+      <div
+        class="med-card"
+        style="width: 100%; aspect-ratio: auto; padding: 20px"
+        onclick="initWorkout('Бицепс')"
+      >
+        ✊ Бицепс
+      </div>
     </div>
 
     <div id="shop" class="page">
-        <h3>Магазин 🛒</h3>
-        <div class="med-card" style="width:100%; aspect-ratio: auto; padding: 20px;">
-            <span style="font-size:40px">🐱</span>
-            <h4>Кот-компаньон</h4>
-            <p>Летает рядом и радует глаз</p>
-            <button class="btn-main" id="buyPetBtn" onclick="buyPet(50)">Купить за 50 🪙</button>
-        </div>
+      <h3>Магазин 🛒</h3>
+      <div
+        class="med-card"
+        style="width: 100%; aspect-ratio: auto; padding: 20px"
+      >
+        <span style="font-size: 40px">🐱</span>
+        <h4>Кот-компаньон</h4>
+        <p>Летает рядом и радует глаз</p>
+        <button class="btn-main" id="buyPetBtn" onclick="buyPet(50)">
+          Купить за 50 🪙
+        </button>
+      </div>
     </div>
 
     <div id="player-overlay" class="overlay">
-        <div class="blob"></div>
-        <h1 id="playing-title"></h1>
-        <div id="playing-icon" style="font-size: 80px; margin: 20px;"></div>
-        <div class="progress-container"><div id="progress-fill"></div></div>
-        <button class="btn-main" id="play-pause-btn" style="width:200px" onclick="togglePlay()">Пауза</button>
-        <button onclick="requestClosePlayer()" style="background:none; border:none; color:var(--tg-hint); margin-top:20px;">Завершить</button>
+      <div class="blob"></div>
+      <h1 id="playing-title"></h1>
+      <div id="playing-icon" style="font-size: 80px; margin: 20px"></div>
+      <div class="progress-container"><div id="progress-fill"></div></div>
+      <button
+        class="btn-main"
+        id="play-pause-btn"
+        style="width: 200px"
+        onclick="togglePlay()"
+      >
+        Пауза
+      </button>
+      <button
+        onclick="requestClosePlayer()"
+        style="
+          background: none;
+          border: none;
+          color: var(--tg-hint);
+          margin-top: 20px;
+        "
+      >
+        Завершить
+      </button>
     </div>
 
     <div id="training-overlay" class="overlay">
-        <h2 id="ex-title"></h2>
-        <p id="ex-desc" style="padding: 0 30px;"></p>
-        <button id="next-ex-btn" class="btn-main" style="width:200px">Далее</button>
-        <button onclick="finishWorkout(false)" style="background:none; border:none; color:var(--tg-hint); margin-top:20px;">Выйти</button>
+      <h2 id="ex-title"></h2>
+      <p id="ex-desc" style="padding: 0 30px"></p>
+      <button id="next-ex-btn" class="btn-main" style="width: 200px">
+        Далее
+      </button>
+      <button
+        onclick="finishWorkout(false)"
+        style="
+          background: none;
+          border: none;
+          color: var(--tg-hint);
+          margin-top: 20px;
+        "
+      >
+        Выйти
+      </button>
     </div>
 
     <nav class="tab-bar">
-        <div class="tab-item active-tab" onclick="openPage('meditation', this)"><span>🧘</span><span>Медитация</span></div>
-        <div class="tab-item" onclick="openPage('bju', this)"><span>🥗</span><span>БЖУ</span></div>
-        <div class="tab-item" onclick="openPage('workout', this)"><span>💪</span><span>Зал</span></div>
-        <div class="tab-item" onclick="openPage('shop', this)"><span>🛒</span><span>Магазин</span></div>
+      <div class="tab-item active-tab" onclick="openPage('meditation', this)">
+        <span>🧘</span><span>Медитация</span>
+      </div>
+      <div class="tab-item" onclick="openPage('bju', this)">
+        <span>🥗</span><span>БЖУ</span>
+      </div>
+      <div class="tab-item" onclick="openPage('workout', this)">
+        <span>💪</span><span>Зал</span>
+      </div>
+      <div class="tab-item" onclick="openPage('shop', this)">
+        <span>🛒</span><span>Магазин</span>
+      </div>
     </nav>
 
     <script>
-        const tg = window.Telegram.WebApp;
-        tg.expand();
+      const tg = window.Telegram.WebApp;
+      tg.expand();
 
-        let coins = parseInt(localStorage.getItem('coins')) || 0;
-        let hasPet = localStorage.getItem('hasPet') === 'true';
-        
-        // Данные БЖУ
-        let bju = JSON.parse(localStorage.getItem('bjuData')) || {
-            target: { cal:0, b:0, j:0, u:0 },
-            curr: { cal:0, b:0, j:0, u:0 },
-            history: [],
-            date: new Date().toLocaleDateString()
+      let coins = parseInt(localStorage.getItem("coins")) || 0;
+      let hasPet = localStorage.getItem("hasPet") === "true";
+
+      // Данные БЖУ
+      let bju = JSON.parse(localStorage.getItem("bjuData")) || {
+        target: { cal: 0, b: 0, j: 0, u: 0 },
+        curr: { cal: 0, b: 0, j: 0, u: 0 },
+        history: [],
+        date: new Date().toLocaleDateString(),
+      };
+
+      let currentAudio = new Audio();
+      let isMedFinished = false;
+
+      // Инициализация
+      document.getElementById("coinCount").innerText = coins;
+      if (hasPet) {
+        document.getElementById("pet-container").style.display = "block";
+        document.getElementById("buyPetBtn").innerText = "Куплено";
+        document.getElementById("buyPetBtn").disabled = true;
+      }
+
+      // Проверка смены дня для БЖУ
+      if (bju.date !== new Date().toLocaleDateString()) {
+        bju.curr = { ...bju.target };
+        bju.history = [];
+        bju.date = new Date().toLocaleDateString();
+        saveBju();
+      }
+      if (bju.target.cal > 0) showBjuTracker();
+
+      function updateCoins(n) {
+        coins += n;
+        document.getElementById("coinCount").innerText = coins;
+        localStorage.setItem("coins", coins);
+        if (n > 0) tg.HapticFeedback.notificationOccurred("success");
+      }
+
+      function openPage(id, el) {
+        document
+          .querySelectorAll(".page")
+          .forEach((p) => p.classList.remove("active"));
+        document
+          .querySelectorAll(".tab-item")
+          .forEach((t) => t.classList.remove("active-tab"));
+        document
+          .getElementById(id === "meditation" ? "meditation" : id)
+          .classList.add("active");
+        el.classList.add("active-tab");
+      }
+
+      // ПЛЕЕР
+      function openPlayer(name, icon, url) {
+        document.getElementById("playing-title").innerText = name;
+        document.getElementById("playing-icon").innerText = icon;
+        document.getElementById("player-overlay").style.display = "flex";
+        currentAudio.src = url;
+        currentAudio.play();
+        isMedFinished = false;
+        currentAudio.ontimeupdate = () => {
+          document.getElementById("progress-fill").style.width =
+            (currentAudio.currentTime / currentAudio.duration) * 100 + "%";
         };
+        currentAudio.onended = () => {
+          isMedFinished = true;
+          updateCoins(20);
+          tg.showAlert("Готово! +20 монет 🪙");
+          closePlayer();
+        };
+      }
 
-        let currentAudio = new Audio();
-        let isMedFinished = false;
-
-        // Инициализация
-        document.getElementById('coinCount').innerText = coins;
-        if(hasPet) {
-            document.getElementById('pet-container').style.display = 'block';
-            document.getElementById('buyPetBtn').innerText = "Куплено";
-            document.getElementById('buyPetBtn').disabled = true;
+      function togglePlay() {
+        if (currentAudio.paused) {
+          currentAudio.play();
+          document.getElementById("play-pause-btn").innerText = "Пауза";
+        } else {
+          currentAudio.pause();
+          document.getElementById("play-pause-btn").innerText = "Играть";
         }
+      }
 
-        // Проверка смены дня для БЖУ
-        if (bju.date !== new Date().toLocaleDateString()) {
-            bju.curr = {...bju.target};
-            bju.history = [];
-            bju.date = new Date().toLocaleDateString();
-            saveBju();
+      function requestClosePlayer() {
+        if (!isMedFinished) {
+          tg.showConfirm("Коины не будут начислены. Выйти?", (ok) => {
+            if (ok) closePlayer();
+          });
+        } else closePlayer();
+      }
+
+      function closePlayer() {
+        currentAudio.pause();
+        document.getElementById("player-overlay").style.display = "none";
+      }
+
+      // БЖУ ЛОГИКА
+      function calcBJU() {
+        const w = document.getElementById("weight").value,
+          h = document.getElementById("height").value,
+          a = document.getElementById("age").value,
+          g = document.getElementById("gender").value;
+        if (!w || !h || !a) return tg.showAlert("Заполни всё!");
+
+        let c = Math.round(
+          g === "male"
+            ? 10 * w + 6.25 * h - 5 * a + 5
+            : 10 * w + 6.25 * h - 5 * a - 161
+        );
+        bju.target = {
+          cal: c,
+          b: Math.round((c * 0.3) / 4),
+          j: Math.round((c * 0.2) / 9),
+          u: Math.round((c * 0.5) / 4),
+        };
+        bju.curr = { ...bju.target };
+        saveBju();
+        showBjuTracker();
+      }
+
+      function showBjuTracker() {
+        document.getElementById("bju-setup").style.display = "none";
+        document.getElementById("bju-tracker").style.display = "block";
+        updateBjuUI();
+      }
+
+      function addMeal() {
+        const name = document.getElementById("food-name").value || "Еда";
+        const c = parseInt(document.getElementById("f-cal").value) || 0,
+          b = parseInt(document.getElementById("f-b").value) || 0,
+          j = parseInt(document.getElementById("f-j").value) || 0,
+          u = parseInt(document.getElementById("f-u").value) || 0;
+
+        bju.curr.cal -= c;
+        bju.curr.b -= b;
+        bju.curr.j -= j;
+        bju.curr.u -= u;
+        bju.history.unshift(
+          `${new Date().toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+          })} - ${name} (${c}кк)`
+        );
+
+        saveBju();
+        updateBjuUI();
+        ["food-name", "f-cal", "f-b", "f-j", "f-u"].forEach(
+          (id) => (document.getElementById(id).value = "")
+        );
+      }
+
+      function updateBjuUI() {
+        document.getElementById(
+          "curr-cal"
+        ).innerText = `Осталось: ${bju.curr.cal} ккал`;
+        document.getElementById("curr-b").innerText = bju.curr.b;
+        document.getElementById("curr-j").innerText = bju.curr.j;
+        document.getElementById("curr-u").innerText = bju.curr.u;
+        document.getElementById("food-history").innerHTML =
+          bju.history
+            .map((h) => `<div class="history-item">${h}</div>`)
+            .join("") || "Пока пусто";
+      }
+
+      function saveBju() {
+        localStorage.setItem("bjuData", JSON.stringify(bju));
+      }
+      function resetBJU() {
+        localStorage.removeItem("bjuData");
+        location.reload();
+      }
+
+      // ТРЕНИРОВКИ
+      const workouts = {
+        Трицепс: [
+          { n: "Жим", d: "Локти назад" },
+          { n: "Отжимания", d: "Руки узко" },
+        ],
+        Бицепс: [
+          { n: "Подъем", d: "Не качайся" },
+          { n: "Молотки", d: "Хват ровно" },
+        ],
+      };
+      let cL = [],
+        cI = 0;
+      function initWorkout(g) {
+        cL = workouts[g];
+        cI = 0;
+        document.getElementById("training-overlay").style.display = "flex";
+        renderEx();
+      }
+      function renderEx() {
+        document.getElementById("ex-title").innerText = cL[cI].n;
+        document.getElementById("ex-desc").innerText = cL[cI].d;
+        document.getElementById("next-ex-btn").innerText =
+          cI === cL.length - 1 ? "Финиш" : "Далее";
+      }
+      document.getElementById("next-ex-btn").onclick = () => {
+        if (cI < cL.length - 1) {
+          cI++;
+          renderEx();
+        } else finishWorkout(true);
+      };
+      function finishWorkout(s) {
+        document.getElementById("training-overlay").style.display = "none";
+        if (s) {
+          updateCoins(50);
+          tg.showAlert("+50 монет!");
         }
-        if (bju.target.cal > 0) showBjuTracker();
+      }
 
-        function updateCoins(n) {
-            coins += n;
-            document.getElementById('coinCount').innerText = coins;
-            localStorage.setItem('coins', coins);
-            if(n > 0) tg.HapticFeedback.notificationOccurred('success');
-        }
-
-        function openPage(id, el) {
-            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-            document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active-tab'));
-            document.getElementById(id === 'meditation' ? 'meditation' : id).classList.add('active');
-            el.classList.add('active-tab');
-        }
-
-        // ПЛЕЕР
-        function openPlayer(name, icon, url) {
-            document.getElementById('playing-title').innerText = name;
-            document.getElementById('playing-icon').innerText = icon;
-            document.getElementById('player-overlay').style.display = 'flex';
-            currentAudio.src = url;
-            currentAudio.play();
-            isMedFinished = false;
-            currentAudio.ontimeupdate = () => {
-                document.getElementById('progress-fill').style.width = (currentAudio.currentTime / currentAudio.duration * 100) + '%';
-            };
-            currentAudio.onended = () => {
-                isMedFinished = true; updateCoins(20);
-                tg.showAlert("Готово! +20 монет 🪙");
-                closePlayer();
-            };
-        }
-
-        function togglePlay() {
-            if (currentAudio.paused) { currentAudio.play(); document.getElementById('play-pause-btn').innerText = "Пауза"; }
-            else { currentAudio.pause(); document.getElementById('play-pause-btn').innerText = "Играть"; }
-        }
-
-        function requestClosePlayer() {
-            if(!isMedFinished) {
-                tg.showConfirm("Коины не будут начислены. Выйти?", (ok) => { if(ok) closePlayer(); });
-            } else closePlayer();
-        }
-
-        function closePlayer() {
-            currentAudio.pause();
-            document.getElementById('player-overlay').style.display = 'none';
-        }
-
-        // БЖУ ЛОГИКА
-        function calcBJU() {
-            const w = document.getElementById('weight').value, h = document.getElementById('height').value, a = document.getElementById('age').value, g = document.getElementById('gender').value;
-            if(!w || !h || !a) return tg.showAlert("Заполни всё!");
-            
-            let c = Math.round((g === 'male') ? (10*w + 6.25*h - 5*a + 5) : (10*w + 6.25*h - 5*a - 161));
-            bju.target = { cal: c, b: Math.round(c*0.3/4), j: Math.round(c*0.2/9), u: Math.round(c*0.5/4) };
-            bju.curr = {...bju.target};
-            saveBju();
-            showBjuTracker();
-        }
-
-        function showBjuTracker() {
-            document.getElementById('bju-setup').style.display = 'none';
-            document.getElementById('bju-tracker').style.display = 'block';
-            updateBjuUI();
-        }
-
-        function addMeal() {
-            const name = document.getElementById('food-name').value || "Еда";
-            const c = parseInt(document.getElementById('f-cal').value)||0, b = parseInt(document.getElementById('f-b').value)||0, j = parseInt(document.getElementById('f-j').value)||0, u = parseInt(document.getElementById('f-u').value)||0;
-            
-            bju.curr.cal -= c; bju.curr.b -= b; bju.curr.j -= j; bju.curr.u -= u;
-            bju.history.unshift(`${new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})} - ${name} (${c}кк)`);
-            
-            saveBju(); updateBjuUI();
-            ['food-name','f-cal','f-b','f-j','f-u'].forEach(id => document.getElementById(id).value = '');
-        }
-
-        function updateBjuUI() {
-            document.getElementById('curr-cal').innerText = `Осталось: ${bju.curr.cal} ккал`;
-            document.getElementById('curr-b').innerText = bju.curr.b;
-            document.getElementById('curr-j').innerText = bju.curr.j;
-            document.getElementById('curr-u').innerText = bju.curr.u;
-            document.getElementById('food-history').innerHTML = bju.history.map(h => `<div class="history-item">${h}</div>`).join('') || "Пока пусто";
-        }
-
-        function saveBju() { localStorage.setItem('bjuData', JSON.stringify(bju)); }
-        function resetBJU() { localStorage.removeItem('bjuData'); location.reload(); }
-
-        // ТРЕНИРОВКИ
-        const workouts = { 'Трицепс': [{n:'Жим',d:'Локти назад'},{n:'Отжимания',d:'Руки узко'}], 'Бицепс': [{n:'Подъем',d:'Не качайся'},{n:'Молотки',d:'Хват ровно'}] };
-        let cL = [], cI = 0;
-        function initWorkout(g) { cL = workouts[g]; cI = 0; document.getElementById('training-overlay').style.display = 'flex'; renderEx(); }
-        function renderEx() { document.getElementById('ex-title').innerText = cL[cI].n; document.getElementById('ex-desc').innerText = cL[cI].d; document.getElementById('next-ex-btn').innerText = (cI === cL.length-1)?"Финиш":"Далее"; }
-        document.getElementById('next-ex-btn').onclick = () => { if(cI < cL.length-1){ cI++; renderEx(); } else finishWorkout(true); };
-        function finishWorkout(s) { document.getElementById('training-overlay').style.display = 'none'; if(s){ updateCoins(50); tg.showAlert("+50 монет!"); } }
-
-        // МАГАЗИН
-        function buyPet(p) { if(coins >= p){ updateCoins(-p); hasPet = true; localStorage.setItem('hasPet','true'); location.reload(); } else tg.showAlert("Мало монет!"); }
+      // МАГАЗИН
+      function buyPet(p) {
+        if (coins >= p) {
+          updateCoins(-p);
+          hasPet = true;
+          localStorage.setItem("hasPet", "true");
+          location.reload();
+        } else tg.showAlert("Мало монет!");
+      }
     </script>
-</body>
+  </body>
 </html>
