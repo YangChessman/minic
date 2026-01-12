@@ -3,199 +3,187 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Telegram To-Do Mini App</title>
+    <title>Self-Dev App</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        /* Используем системные переменные темы Telegram */
         :root {
             --tg-bg: var(--tg-theme-bg-color, #ffffff);
             --tg-text: var(--tg-theme-text-color, #000000);
-            --tg-hint: var(--tg-theme-hint-color, #999999);
             --tg-link: var(--tg-theme-link-color, #2481cc);
-            --tg-secondary-bg: var(--tg-theme-secondary-bg-color, #f4f4f5);
+            --tg-sec-bg: var(--tg-theme-secondary-bg-color, #f4f4f5);
         }
 
         body {
             background-color: var(--tg-bg);
             color: var(--tg-text);
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            font-family: sans-serif;
             margin: 0;
-            padding: 16px;
+            padding-bottom: 80px; /* Место под меню */
+            overflow-x: hidden;
+        }
+
+        /* Контейнеры страниц */
+        .page { display: none; padding: 20px; text-align: center; animation: fadeIn 0.3s; }
+        .active { display: block; }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        /* Таб-бар (Меню снизу) */
+        .tab-bar {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            display: flex;
+            background: var(--tg-sec-bg);
+            border-top: 1px solid #ccc;
+            height: 65px;
+        }
+
+        .tab-item {
+            flex: 1;
             display: flex;
             flex-direction: column;
             align-items: center;
-        }
-
-        h2 { margin-bottom: 20px; width: 100%; text-align: left; }
-
-        .input-container {
-            width: 100%;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-
-        .input-row {
-            display: flex;
-            gap: 8px;
-        }
-
-        input[type="text"] {
-            flex: 1;
-            padding: 12px;
-            border: 1px solid var(--tg-hint);
-            border-radius: 10px;
-            background: var(--tg-bg);
-            color: var(--tg-text);
-            outline: none;
-        }
-
-        /* Селектор важности */
-        select {
-            padding: 10px;
-            border-radius: 10px;
-            border: 1px solid var(--tg-hint);
-            background: var(--tg-bg);
-            color: var(--tg-text);
-        }
-
-        button#addBtn {
-            padding: 12px 20px;
-            background-color: var(--tg-link);
-            color: #fff;
-            border: none;
-            border-radius: 10px;
-            font-weight: bold;
+            justify-content: center;
+            font-size: 12px;
             cursor: pointer;
+            color: var(--tg-text);
+            opacity: 0.6;
         }
 
-        ul {
-            list-style: none;
-            padding: 0;
-            width: 100%;
-        }
+        .tab-item.active-tab { opacity: 1; color: var(--tg-link); font-weight: bold; }
 
-        li {
-            background: var(--tg-secondary-bg);
-            margin-bottom: 10px;
-            padding: 12px;
+        /* Стили для кнопок */
+        .main-btn {
+            background: var(--tg-link);
+            color: white;
+            border: none;
+            padding: 15px 30px;
             border-radius: 12px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            transition: transform 0.1s;
-            border-left: 5px solid transparent;
-        }
-
-        /* Стиль для важных задач */
-        li.important {
-            border-left: 5px solid #ff4b4b; /* Красный маркер */
-            background: rgba(255, 75, 75, 0.1);
-        }
-
-        .delete-btn {
-            background: none;
-            border: none;
             font-size: 18px;
-            cursor: pointer;
-            color: var(--tg-hint);
+            margin-top: 20px;
         }
 
-        .task-text {
-            flex: 1;
-        }
+        /* Таймер и Медитация */
+        #breathStatus { font-size: 24px; font-weight: bold; color: var(--tg-link); margin-top: 20px; }
+        #timerDisplay { font-size: 48px; margin: 20px 0; }
 
-        .priority-tag {
-            font-size: 10px;
-            text-transform: uppercase;
-            margin-right: 8px;
-            padding: 2px 6px;
-            border-radius: 4px;
-            background: var(--tg-hint);
-            color: #fff;
+        /* Список упражнений */
+        .exercise-card {
+            background: var(--tg-sec-bg);
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 10px;
+            text-align: left;
         }
     </style>
 </head>
 <body>
 
-    <h2>Мой Список Дел 🚀</h2>
-
-    <div class="input-container">
-        <div class="input-row">
-            <input type="text" id="taskInput" placeholder="Что купим/сделаем?">
-            <select id="prioritySelect">
-                <option value="normal">Обычное</option>
-                <option value="high">Важное 🔥</option>
-            </select>
-        </div>
-        <button id="addBtn">Добавить задачу</button>
+    <div id="meditation" class="page active">
+        <h2>Медитация «Квадрат» 🧘‍♂️</h2>
+        <div id="breathStatus">Готовы?</div>
+        <button class="main-btn" id="startBreath">Начать</button>
     </div>
 
-    <ul id="taskList"></ul>
+    <div id="pomodoro" class="page">
+        <h2>Помидор 🍅</h2>
+        <div id="timerDisplay">25:00</div>
+        <button class="main-btn" id="startTimer">Старт</button>
+        <button class="main-btn" style="background:gray;" id="resetTimer">Сброс</button>
+    </div>
+
+    <div id="workout" class="page">
+        <h2>Упражнения 💪</h2>
+        <div class="exercise-card">
+            <strong>Грудь:</strong> Отжимания, Жим гантелей.
+        </div>
+        <div class="exercise-card">
+            <strong>Спина:</strong> Подтягивания, Тяга блока.
+        </div>
+        <div class="exercise-card">
+            <strong>Ноги:</strong> Приседания, Выпады.
+        </div>
+    </div>
+
+    <nav class="tab-bar">
+        <div class="tab-item active-tab" onclick="openPage('meditation', this)">
+            <span>🧘</span><span>Дыхание</span>
+        </div>
+        <div class="tab-item" onclick="openPage('pomodoro', this)">
+            <span>⏱️</span><span>Таймер</span>
+        </div>
+        <div class="tab-item" onclick="openPage('workout', this)">
+            <span>💪</span><span>Зал</span>
+        </div>
+    </nav>
 
     <script>
         const tg = window.Telegram.WebApp;
-        const addBtn = document.getElementById('addBtn');
-        const taskInput = document.getElementById('taskInput');
-        const prioritySelect = document.getElementById('prioritySelect');
-        const taskList = document.getElementById('taskList');
-
-        // Сообщаем Telegram, что приложение готово
-        tg.ready();
         tg.expand();
 
-        // Настройка главной кнопки (внизу экрана)
-        tg.MainButton.setText("ОТПРАВИТЬ ОТЧЕТ БОТУ");
-        tg.MainButton.textColor = "#FFFFFF";
-        tg.MainButton.color = "#2ec126"; // Зеленый цвет
-
-        // Функция добавления задачи
-        addBtn.addEventListener('click', () => {
-            const text = taskInput.value.trim();
-            const priority = prioritySelect.value;
-
-            if (text === "") {
-                tg.showAlert("Введите текст задачи!");
-                return;
-            }
-
-            const li = document.createElement('li');
-            if (priority === 'high') li.classList.add('important');
-
-            li.innerHTML = `
-                <div class="task-text">
-                    ${priority === 'high' ? '<span class="priority-tag">Важное</span>' : ''}
-                    <span>${text}</span>
-                </div>
-                <button class="delete-btn">✕</button>
-            `;
-
-            // Удаление задачи
-            li.querySelector('.delete-btn').addEventListener('click', () => {
-                li.remove();
-                if (taskList.children.length === 0) tg.MainButton.hide();
-            });
-
-            taskList.appendChild(li);
-            taskInput.value = "";
+        // 1. ЛОГИКА ПЕРЕКЛЮЧЕНИЯ ВКЛАДОК
+        function openPage(pageId, el) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active-tab'));
             
-            // Показываем кнопку отправки, если есть задачи
-            tg.MainButton.show();
+            document.getElementById(pageId).classList.add('active');
+            el.classList.add('active-tab');
+        }
+
+        // 2. ЛОГИКА МЕДИТАЦИИ
+        const breathBtn = document.getElementById('startBreath');
+        const breathStatus = document.getElementById('breathStatus');
+        
+        breathBtn.addEventListener('click', () => {
+            breathBtn.style.display = 'none';
+            const cycle = [
+                { text: "Вдох...", time: 4000 },
+                { text: "Задержите дыхание...", time: 4000 },
+                { text: "Выдох...", time: 4000 }
+            ];
+            
+            let i = 0;
+            function runCycle() {
+                breathStatus.innerText = cycle[i].text;
+                setTimeout(() => {
+                    i = (i + 1) % cycle.length;
+                    runCycle();
+                }, cycle[i].time);
+            }
+            runCycle();
         });
 
-        // Логика нажатия на главную кнопку Телеграма
-        tg.onEvent('mainButtonClicked', function() {
-            const tasks = [];
-            document.querySelectorAll('#taskList li').forEach(li => {
-                tasks.push({
-                    text: li.querySelector('.task-text span:last-child').innerText,
-                    important: li.classList.contains('important')
-                });
-            });
+        // 3. ЛОГИКА ТАЙМЕРА (ПОМИДОР)
+        let timer;
+        let timeLeft = 25 * 60;
+        const display = document.getElementById('timerDisplay');
 
-            // Отправляем данные в формате JSON
-            tg.sendData(JSON.stringify(tasks));
+        function updateDisplay() {
+            let mins = Math.floor(timeLeft / 60);
+            let secs = timeLeft % 60;
+            display.innerText = `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+        }
+
+        document.getElementById('startTimer').addEventListener('click', () => {
+            if (timer) return;
+            timer = setInterval(() => {
+                if (timeLeft > 0) {
+                    timeLeft--;
+                    updateDisplay();
+                } else {
+                    clearInterval(timer);
+                    tg.HapticFeedback.notificationOccurred('success'); // Виброотклик!
+                    alert('Время вышло!');
+                }
+            }, 1000);
+        });
+
+        document.getElementById('resetTimer').addEventListener('click', () => {
+            clearInterval(timer);
+            timer = null;
+            timeLeft = 25 * 60;
+            updateDisplay();
         });
     </script>
 </body>
