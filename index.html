@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Self-Dev App</title>
+    <title>Upgrade Me App</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root {
@@ -11,180 +11,162 @@
             --tg-text: var(--tg-theme-text-color, #000000);
             --tg-link: var(--tg-theme-link-color, #2481cc);
             --tg-sec-bg: var(--tg-theme-secondary-bg-color, #f4f4f5);
+            --gold: #ffcf40;
         }
 
-        body {
-            background-color: var(--tg-bg);
-            color: var(--tg-text);
-            font-family: sans-serif;
-            margin: 0;
-            padding-bottom: 80px; /* Место под меню */
-            overflow-x: hidden;
+        body { font-family: sans-serif; background: var(--tg-bg); color: var(--tg-text); margin: 0; padding-bottom: 70px; overflow-x: hidden; }
+        
+        /* Хедер с монетами */
+        .header {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 15px; background: var(--tg-sec-bg); sticky: top; top: 0; z-index: 10;
         }
+        .coin-balance { font-weight: bold; color: var(--gold); font-size: 20px; display: flex; align-items: center; gap: 5px; }
 
-        /* Контейнеры страниц */
-        .page { display: none; padding: 20px; text-align: center; animation: fadeIn 0.3s; }
+        /* Навигация */
+        .page { display: none; padding: 15px; animation: slideUp 0.3s ease; }
         .active { display: block; }
+        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        /* Карточки Медитаций */
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px; }
+        .card {
+            background: var(--tg-sec-bg); border-radius: 15px; padding: 20px;
+            text-align: center; cursor: pointer; border: 2px solid transparent; transition: 0.2s;
+        }
+        .card:active { transform: scale(0.95); border-color: var(--tg-link); }
+        .card img { width: 50px; height: 50px; margin-bottom: 10px; }
 
-        /* Таб-бар (Меню снизу) */
+        /* Полноэкранный плеер/тренировка */
+        #overlay {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--tg-bg); z-index: 100; flex-direction: column; align-items: center; justify-content: center;
+        }
+
+        /* Таб-бар */
         .tab-bar {
-            position: fixed;
-            bottom: 0;
-            width: 100%;
-            display: flex;
-            background: var(--tg-sec-bg);
-            border-top: 1px solid #ccc;
-            height: 65px;
+            position: fixed; bottom: 0; width: 100%; display: flex;
+            background: var(--tg-sec-bg); border-top: 1px solid rgba(0,0,0,0.1); height: 65px;
         }
+        .tab-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 10px; opacity: 0.5; }
+        .active-tab { opacity: 1; color: var(--tg-link); }
 
-        .tab-item {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            font-size: 12px;
-            cursor: pointer;
-            color: var(--tg-text);
-            opacity: 0.6;
-        }
-
-        .tab-item.active-tab { opacity: 1; color: var(--tg-link); font-weight: bold; }
-
-        /* Стили для кнопок */
-        .main-btn {
-            background: var(--tg-link);
-            color: white;
-            border: none;
-            padding: 15px 30px;
-            border-radius: 12px;
-            font-size: 18px;
-            margin-top: 20px;
-        }
-
-        /* Таймер и Медитация */
-        #breathStatus { font-size: 24px; font-weight: bold; color: var(--tg-link); margin-top: 20px; }
-        #timerDisplay { font-size: 48px; margin: 20px 0; }
-
-        /* Список упражнений */
-        .exercise-card {
-            background: var(--tg-sec-bg);
-            padding: 15px;
-            margin: 10px 0;
-            border-radius: 10px;
-            text-align: left;
-        }
+        /* БЖУ Форма */
+        .bju-input { width: 80%; padding: 10px; margin: 5px; border-radius: 8px; border: 1px solid var(--tg-link); }
     </style>
 </head>
 <body>
 
-    <div id="meditation" class="page active">
-        <h2>Медитация «Квадрат» 🧘‍♂️</h2>
-        <div id="breathStatus">Готовы?</div>
-        <button class="main-btn" id="startBreath">Начать</button>
+    <div class="header">
+        <span>Upgrade Me</span>
+        <div class="coin-balance">🪙 <span id="coinCount">0</span></div>
     </div>
 
-    <div id="pomodoro" class="page">
-        <h2>Помидор 🍅</h2>
-        <div id="timerDisplay">25:00</div>
-        <button class="main-btn" id="startTimer">Старт</button>
-        <button class="main-btn" style="background:gray;" id="resetTimer">Сброс</button>
+    <div id="meditation" class="page active">
+        <h3>Медитации 🧘</h3>
+        <div class="grid">
+            <div class="card" onclick="startMeditation('Спокойствие', 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3')">
+                <div>🌊</div><div>Спокойствие</div>
+            </div>
+            <div class="card" onclick="startMeditation('Сон', 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3')">
+                <div>🌙</div><div>Сон</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="bju" class="page">
+        <h3>Трекер БЖУ 🥗</h3>
+        <div id="bjuStats">Осталось: 2000 ккал</div>
+        <input type="number" id="caloriesIn" class="bju-input" placeholder="Введите калории">
+        <button onclick="addFood()" style="padding: 10px 20px;">Добавить еду</button>
     </div>
 
     <div id="workout" class="page">
-        <h2>Упражнения 💪</h2>
-        <div class="exercise-card">
-            <strong>Грудь:</strong> Отжимания, Жим гантелей.
-        </div>
-        <div class="exercise-card">
-            <strong>Спина:</strong> Подтягивания, Тяга блока.
-        </div>
-        <div class="exercise-card">
-            <strong>Ноги:</strong> Приседания, Выпады.
-        </div>
+        <h3>Тренировки 💪</h3>
+        <div class="card" style="width: 90%;" onclick="showExercises('Трицепс')">Трицепс</div>
+        <div class="card" style="width: 90%;" onclick="showExercises('Спина')">Спина</div>
+    </div>
+
+    <div id="shop" class="page">
+        <h3>Магазин 🛒</h3>
+        <div class="card">Новая тема за 100 🪙</div>
+    </div>
+
+    <div id="overlay">
+        <h2 id="overlayTitle">Действие</h2>
+        <div id="overlayContent" style="font-size: 50px; margin: 30px;">⏳</div>
+        <button class="bju-input" onclick="closeOverlay()">Завершить</button>
     </div>
 
     <nav class="tab-bar">
-        <div class="tab-item active-tab" onclick="openPage('meditation', this)">
-            <span>🧘</span><span>Дыхание</span>
-        </div>
-        <div class="tab-item" onclick="openPage('pomodoro', this)">
-            <span>⏱️</span><span>Таймер</span>
-        </div>
-        <div class="tab-item" onclick="openPage('workout', this)">
-            <span>💪</span><span>Зал</span>
-        </div>
+        <div class="tab-item active-tab" onclick="openPage('meditation', this)"><span>🧘</span><span>Медитация</span></div>
+        <div class="tab-item" onclick="openPage('bju', this)"><span>🥗</span><span>БЖУ</span></div>
+        <div class="tab-item" onclick="openPage('workout', this)"><span>💪</span><span>Зал</span></div>
+        <div class="tab-item" onclick="openPage('shop', this)"><span>🛒</span><span>Магазин</span></div>
     </nav>
 
     <script>
         const tg = window.Telegram.WebApp;
         tg.expand();
 
-        // 1. ЛОГИКА ПЕРЕКЛЮЧЕНИЯ ВКЛАДОК
+        let coins = parseInt(localStorage.getItem('coins')) || 0;
+        document.getElementById('coinCount').innerText = coins;
+
+        function addCoins(amount) {
+            coins += amount;
+            document.getElementById('coinCount').innerText = coins;
+            localStorage.setItem('coins', coins);
+            tg.HapticFeedback.notificationOccurred('success');
+        }
+
         function openPage(pageId, el) {
             document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
             document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active-tab'));
-            
             document.getElementById(pageId).classList.add('active');
             el.classList.add('active-tab');
         }
 
-        // 2. ЛОГИКА МЕДИТАЦИИ
-        const breathBtn = document.getElementById('startBreath');
-        const breathStatus = document.getElementById('breathStatus');
-        
-        breathBtn.addEventListener('click', () => {
-            breathBtn.style.display = 'none';
-            const cycle = [
-                { text: "Вдох...", time: 4000 },
-                { text: "Задержите дыхание...", time: 4000 },
-                { text: "Выдох...", time: 4000 }
-            ];
+        // МЕДИТАЦИЯ
+        function startMeditation(name, soundUrl) {
+            const overlay = document.getElementById('overlay');
+            const title = document.getElementById('overlayTitle');
+            const content = document.getElementById('overlayContent');
             
-            let i = 0;
-            function runCycle() {
-                breathStatus.innerText = cycle[i].text;
-                setTimeout(() => {
-                    i = (i + 1) % cycle.length;
-                    runCycle();
-                }, cycle[i].time);
-            }
-            runCycle();
-        });
+            overlay.style.display = 'flex';
+            title.innerText = name;
+            
+            let timeLeft = 5;
+            content.innerText = timeLeft;
 
-        // 3. ЛОГИКА ТАЙМЕРА (ПОМИДОР)
-        let timer;
-        let timeLeft = 25 * 60;
-        const display = document.getElementById('timerDisplay');
+            const audio = new Audio(soundUrl);
+            audio.play().catch(() => console.log("Audio play failed - need user interaction"));
 
-        function updateDisplay() {
-            let mins = Math.floor(timeLeft / 60);
-            let secs = timeLeft % 60;
-            display.innerText = `${mins}:${secs < 10 ? '0' : ''}${secs}`;
-        }
-
-        document.getElementById('startTimer').addEventListener('click', () => {
-            if (timer) return;
-            timer = setInterval(() => {
-                if (timeLeft > 0) {
-                    timeLeft--;
-                    updateDisplay();
-                } else {
+            const timer = setInterval(() => {
+                timeLeft--;
+                content.innerText = timeLeft;
+                if (timeLeft <= 0) {
                     clearInterval(timer);
-                    tg.HapticFeedback.notificationOccurred('success'); // Виброотклик!
-                    alert('Время вышло!');
+                    audio.pause();
+                    content.innerText = "✨ +10 коинов!";
+                    addCoins(10);
                 }
             }, 1000);
-        });
+        }
 
-        document.getElementById('resetTimer').addEventListener('click', () => {
-            clearInterval(timer);
-            timer = null;
-            timeLeft = 25 * 60;
-            updateDisplay();
-        });
+        function closeOverlay() {
+            document.getElementById('overlay').style.display = 'none';
+        }
+
+        // БЖУ ЛОГИКА
+        let dailyLimit = 2000;
+        function addFood() {
+            const val = document.getElementById('caloriesIn').value;
+            if(val) {
+                dailyLimit -= val;
+                document.getElementById('bjuStats').innerText = `Осталось: ${dailyLimit} ккал`;
+                document.getElementById('caloriesIn').value = '';
+            }
+        }
     </script>
 </body>
 </html>
