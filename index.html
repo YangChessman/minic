@@ -2,8 +2,8 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Upgrade Me App</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Ultimate Self-Dev</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root {
@@ -14,88 +14,94 @@
             --gold: #ffcf40;
         }
 
-        body { font-family: sans-serif; background: var(--tg-bg); color: var(--tg-text); margin: 0; padding-bottom: 70px; overflow-x: hidden; }
+        body { font-family: sans-serif; background: var(--tg-bg); color: var(--tg-text); margin: 0; padding-bottom: 80px; }
         
-        /* Хедер с монетами */
-        .header {
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 15px; background: var(--tg-sec-bg); sticky: top; top: 0; z-index: 10;
+        /* Питомец в углу */
+        #pet-container {
+            position: fixed; top: 60px; right: 10px; font-size: 40px; 
+            z-index: 100; display: none; filter: drop-shadow(0 0 5px rgba(0,0,0,0.2));
+            animation: float 2s infinite ease-in-out;
         }
-        .coin-balance { font-weight: bold; color: var(--gold); font-size: 20px; display: flex; align-items: center; gap: 5px; }
+        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
 
-        /* Навигация */
-        .page { display: none; padding: 15px; animation: slideUp 0.3s ease; }
+        .header { display: flex; justify-content: space-between; padding: 15px; background: var(--tg-sec-bg); font-weight: bold; }
+        .coin-balance { color: var(--gold); }
+
+        .page { display: none; padding: 15px; }
         .active { display: block; }
-        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
-        /* Карточки Медитаций */
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px; }
-        .card {
-            background: var(--tg-sec-bg); border-radius: 15px; padding: 20px;
-            text-align: center; cursor: pointer; border: 2px solid transparent; transition: 0.2s;
-        }
-        .card:active { transform: scale(0.95); border-color: var(--tg-link); }
-        .card img { width: 50px; height: 50px; margin-bottom: 10px; }
-
-        /* Полноэкранный плеер/тренировка */
-        #overlay {
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: var(--tg-bg); z-index: 100; flex-direction: column; align-items: center; justify-content: center;
-        }
-
-        /* Таб-бар */
-        .tab-bar {
-            position: fixed; bottom: 0; width: 100%; display: flex;
-            background: var(--tg-sec-bg); border-top: 1px solid rgba(0,0,0,0.1); height: 65px;
-        }
+        /* Стили кнопок и карточек */
+        .card { background: var(--tg-sec-bg); border-radius: 12px; padding: 15px; margin-bottom: 10px; text-align: center; cursor: pointer; }
+        .btn-main { background: var(--tg-link); color: white; border: none; border-radius: 8px; padding: 12px; width: 100%; margin-top: 10px; font-weight: bold; }
+        
+        /* Сетка вкладок */
+        .tab-bar { position: fixed; bottom: 0; width: 100%; display: flex; background: var(--tg-sec-bg); height: 65px; border-top: 1px solid #ddd; }
         .tab-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 10px; opacity: 0.5; }
         .active-tab { opacity: 1; color: var(--tg-link); }
 
-        /* БЖУ Форма */
-        .bju-input { width: 80%; padding: 10px; margin: 5px; border-radius: 8px; border: 1px solid var(--tg-link); }
+        /* Формы БЖУ */
+        input { width: 90%; padding: 10px; margin: 5px 0; border: 1px solid #ccc; border-radius: 8px; background: var(--tg-bg); color: var(--tg-text); }
+        
+        /* Оверлей тренировки */
+        #training-overlay { display: none; position: fixed; inset: 0; background: var(--tg-bg); z-index: 200; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
     </style>
 </head>
 <body>
 
+    <div id="pet-container">🐱</div>
+
     <div class="header">
-        <span>Upgrade Me</span>
+        <span>Level Up App</span>
         <div class="coin-balance">🪙 <span id="coinCount">0</span></div>
     </div>
 
     <div id="meditation" class="page active">
         <h3>Медитации 🧘</h3>
-        <div class="grid">
-            <div class="card" onclick="startMeditation('Спокойствие', 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3')">
-                <div>🌊</div><div>Спокойствие</div>
-            </div>
-            <div class="card" onclick="startMeditation('Сон', 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3')">
-                <div>🌙</div><div>Сон</div>
-            </div>
-        </div>
+        <div class="card" onclick="startMeditation('Дыхание', 5)">🧘 Подышать (5 сек)</div>
     </div>
 
     <div id="bju" class="page">
-        <h3>Трекер БЖУ 🥗</h3>
-        <div id="bjuStats">Осталось: 2000 ккал</div>
-        <input type="number" id="caloriesIn" class="bju-input" placeholder="Введите калории">
-        <button onclick="addFood()" style="padding: 10px 20px;">Добавить еду</button>
+        <h3>Калькулятор БЖУ 🥗</h3>
+        <div id="bju-setup">
+            <input type="number" id="weight" placeholder="Вес (кг)">
+            <input type="number" id="height" placeholder="Рост (см)">
+            <input type="number" id="age" placeholder="Возраст">
+            <select id="gender" style="width: 95%; padding: 10px; margin: 5px 0;">
+                <option value="male">Мужчина</option>
+                <option value="female">Женщина</option>
+            </select>
+            <button class="btn-main" onclick="calcBJU()">Рассчитать норму</button>
+        </div>
+        <div id="bju-tracker" style="display:none;">
+            <h4 id="target-text">Ваша цель: -</h4>
+            <div id="current-stats">Осталось: - ккал</div>
+            <hr>
+            <input type="text" id="food-name" placeholder="Что съели?">
+            <input type="number" id="food-cal" placeholder="Калории">
+            <button class="btn-main" onclick="addMeal()">Добавить прием пищи</button>
+        </div>
     </div>
 
     <div id="workout" class="page">
-        <h3>Тренировки 💪</h3>
-        <div class="card" style="width: 90%;" onclick="showExercises('Трицепс')">Трицепс</div>
-        <div class="card" style="width: 90%;" onclick="showExercises('Спина')">Спина</div>
+        <h3>Выбор группы мышц 💪</h3>
+        <div class="card" onclick="initWorkout('Трицепс')">💪 Трицепс</div>
+        <div class="card" onclick="initWorkout('Бицепс')">✊ Бицепс</div>
     </div>
 
     <div id="shop" class="page">
         <h3>Магазин 🛒</h3>
-        <div class="card">Новая тема за 100 🪙</div>
+        <div class="card">
+            <span>Кот-компаньон 🐱</span><br>
+            <small>Цена: 50 коинов</small>
+            <button class="btn-main" onclick="buyPet('🐱', 50)">Купить</button>
+        </div>
     </div>
 
-    <div id="overlay">
-        <h2 id="overlayTitle">Действие</h2>
-        <div id="overlayContent" style="font-size: 50px; margin: 30px;">⏳</div>
-        <button class="bju-input" onclick="closeOverlay()">Завершить</button>
+    <div id="training-overlay">
+        <h2 id="ex-title">Упражнение</h2>
+        <div id="ex-desc" style="font-size: 18px; text-align: center; margin: 20px;"></div>
+        <button id="next-ex-btn" class="btn-main">Следующее ➡️</button>
+        <button onclick="finishWorkout()" class="btn-main" style="background: #eb4034;">Завершить</button>
     </div>
 
     <nav class="tab-bar">
@@ -110,13 +116,18 @@
         tg.expand();
 
         let coins = parseInt(localStorage.getItem('coins')) || 0;
-        document.getElementById('coinCount').innerText = coins;
+        let hasPet = localStorage.getItem('hasPet') === 'true';
+        let dailyTarget = 0;
+        let currentCal = 0;
 
-        function addCoins(amount) {
+        // Инициализация при загрузке
+        updateCoins(0);
+        if(hasPet) document.getElementById('pet-container').style.display = 'block';
+
+        function updateCoins(amount) {
             coins += amount;
             document.getElementById('coinCount').innerText = coins;
             localStorage.setItem('coins', coins);
-            tg.HapticFeedback.notificationOccurred('success');
         }
 
         function openPage(pageId, el) {
@@ -126,46 +137,116 @@
             el.classList.add('active-tab');
         }
 
-        // МЕДИТАЦИЯ
-        function startMeditation(name, soundUrl) {
-            const overlay = document.getElementById('overlay');
-            const title = document.getElementById('overlayTitle');
-            const content = document.getElementById('overlayContent');
-            
-            overlay.style.display = 'flex';
-            title.innerText = name;
-            
-            let timeLeft = 5;
-            content.innerText = timeLeft;
+        // --- ЛОГИКА БЖУ ---
+        function calcBJU() {
+            const w = document.getElementById('weight').value;
+            const h = document.getElementById('height').value;
+            const a = document.getElementById('age').value;
+            const g = document.getElementById('gender').value;
 
-            const audio = new Audio(soundUrl);
-            audio.play().catch(() => console.log("Audio play failed - need user interaction"));
+            if(!w || !h || !a) return alert("Заполни все поля!");
 
-            const timer = setInterval(() => {
-                timeLeft--;
-                content.innerText = timeLeft;
-                if (timeLeft <= 0) {
-                    clearInterval(timer);
-                    audio.pause();
-                    content.innerText = "✨ +10 коинов!";
-                    addCoins(10);
-                }
-            }, 1000);
+            // Формула Миффлина-Сан Жеора
+            if(g === 'male') dailyTarget = (10 * w) + (6.25 * h) - (5 * a) + 5;
+            else dailyTarget = (10 * w) + (6.25 * h) - (5 * a) - 161;
+
+            dailyTarget = Math.round(dailyTarget);
+            currentCal = dailyTarget;
+
+            document.getElementById('bju-setup').style.display = 'none';
+            document.getElementById('bju-tracker').style.display = 'block';
+            document.getElementById('target-text').innerText = `Ваша норма: ${dailyTarget} ккал`;
+            updateBjuUI();
         }
 
-        function closeOverlay() {
-            document.getElementById('overlay').style.display = 'none';
+        function addMeal() {
+            const cal = document.getElementById('food-cal').value;
+            if(!cal) return;
+            currentCal -= cal;
+            updateBjuUI();
+            document.getElementById('food-name').value = '';
+            document.getElementById('food-cal').value = '';
         }
 
-        // БЖУ ЛОГИКА
-        let dailyLimit = 2000;
-        function addFood() {
-            const val = document.getElementById('caloriesIn').value;
-            if(val) {
-                dailyLimit -= val;
-                document.getElementById('bjuStats').innerText = `Осталось: ${dailyLimit} ккал`;
-                document.getElementById('caloriesIn').value = '';
+        function updateBjuUI() {
+            document.getElementById('current-stats').innerText = `Осталось: ${currentCal} ккал`;
+        }
+
+        // --- ЛОГИКА ТРЕНИРОВОК ---
+        const exercisesDB = {
+            'Трицепс': [
+                { name: 'Отжимания на брусьях', desc: 'Держите спину прямо, локти назад' },
+                { name: 'Разгибания рук', desc: 'Используйте гантель за голову' }
+            ],
+            'Бицепс': [
+                { name: 'Подъем штанги', desc: 'Не раскачивайтесь корпусом' },
+                { name: 'Молотки', desc: 'Хват гантелей нейтральный' }
+            ]
+        };
+
+        let currentExList = [];
+        let currentExIdx = 0;
+
+        function initWorkout(group) {
+            currentExList = exercisesDB[group];
+            currentExIdx = 0;
+            document.getElementById('training-overlay').style.display = 'flex';
+            showExercise();
+        }
+
+        function showExercise() {
+            const ex = currentExList[currentExIdx];
+            document.getElementById('ex-title').innerText = ex.name;
+            document.getElementById('ex-desc').innerText = ex.desc;
+            
+            if(currentExIdx === currentExList.length - 1) {
+                document.getElementById('next-ex-btn').style.display = 'none';
+            } else {
+                document.getElementById('next-ex-btn').style.display = 'block';
             }
+        }
+
+        document.getElementById('next-ex-btn').onclick = () => {
+            currentExIdx++;
+            showExercise();
+        }
+
+        function finishWorkout() {
+            document.getElementById('training-overlay').style.display = 'none';
+            updateCoins(50);
+            tg.showAlert("Тренировка окончена! +50 монет");
+        }
+
+        // --- МАГАЗИН ---
+        function buyPet(emoji, price) {
+            if(coins >= price && !hasPet) {
+                updateCoins(-price);
+                hasPet = true;
+                localStorage.setItem('hasPet', 'true');
+                document.getElementById('pet-container').style.display = 'block';
+                tg.showAlert("Поздравляем с новым другом!");
+            } else if (hasPet) {
+                tg.showAlert("Питомец уже есть!");
+            } else {
+                tg.showAlert("Недостаточно монет!");
+            }
+        }
+
+        // --- МЕДИТАЦИЯ ---
+        function startMeditation(name, time) {
+            tg.showConfirm(`Начать медитацию "${name}"?`, (ok) => {
+                if(ok) {
+                    let sec = time;
+                    const interval = setInterval(() => {
+                        sec--;
+                        if(sec <= 0) {
+                            clearInterval(interval);
+                            updateCoins(15);
+                            tg.showAlert("Готово! +15 монет");
+                        }
+                    }, 1000);
+                }
+            });
         }
     </script>
 </body>
