@@ -1,31 +1,39 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
   <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="stylesheet" href="style.css" />
-    <title>Boost</title>
+    <meta charset="utf-8" />
+    <title>My First Mini App</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+      body {
+        font-family: sans-serif;
+        text-align: center;
+        padding: 20px;
+      }
+      button {
+        padding: 10px 20px;
+        background: #2481cc;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+      }
+    </style>
   </head>
   <body>
-    <div class="wrapper">
-      <nav class="nav">
-        <div class="nav-name">
-          <a href="#">Буст</a>
-        </div>
-        <div class="nav-menu">
-          <ul>
-            <li><a href="#">Машины</a></li>
-            <li><a href="#">Мотики</a></li>
-            <li><a href="#">О нас</a></li>
-          </ul>
-        </div>
-        <div class="nav-btn">
-          <button class="btn">Войти</button>
-        </div>
-      </nav>
-    </div>
-    <div class="citat">
-      <p>каждый километр новая история: арендуй - делай</p>
-    </div>
+    <h1>Привет, это мой Mini App!</h1>
+    <button id="mainButton">Сказать "Привет" в чат</button>
+
+    <script>
+      // Инициализируем объект WebApp
+      const tg = window.Telegram.WebApp;
+      tg.expand(); // Разворачиваем приложение на весь экран
+
+      const btn = document.getElementById("mainButton");
+      btn.addEventListener("click", () => {
+        tg.sendData("Кнопка нажата!"); // Отправляем данные боту
+        tg.close(); // Закрываем приложение
+      });
+    </script>
   </body>
 </html>
