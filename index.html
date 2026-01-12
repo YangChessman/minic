@@ -1,26 +1,202 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <meta charset="utf-8" />
-    <title>My First Mini App</title>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Telegram To-Do Mini App</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-      <body>
-    <div id="container">
-        <h2>Мои задачи 📝</h2>
-        
-        <div class="input-group">
-            <input type="text" id="todoInput" placeholder="Что нужно сделать?">
-            <button id="addBtn">➕</button>
-        </div>
+        /* Используем системные переменные темы Telegram */
+        :root {
+            --tg-bg: var(--tg-theme-bg-color, #ffffff);
+            --tg-text: var(--tg-theme-text-color, #000000);
+            --tg-hint: var(--tg-theme-hint-color, #999999);
+            --tg-link: var(--tg-theme-link-color, #2481cc);
+            --tg-secondary-bg: var(--tg-theme-secondary-bg-color, #f4f4f5);
+        }
 
-        <ul id="todoList"></ul>
+        body {
+            background-color: var(--tg-bg);
+            color: var(--tg-text);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        h2 { margin-bottom: 20px; width: 100%; text-align: left; }
+
+        .input-container {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .input-row {
+            display: flex;
+            gap: 8px;
+        }
+
+        input[type="text"] {
+            flex: 1;
+            padding: 12px;
+            border: 1px solid var(--tg-hint);
+            border-radius: 10px;
+            background: var(--tg-bg);
+            color: var(--tg-text);
+            outline: none;
+        }
+
+        /* Селектор важности */
+        select {
+            padding: 10px;
+            border-radius: 10px;
+            border: 1px solid var(--tg-hint);
+            background: var(--tg-bg);
+            color: var(--tg-text);
+        }
+
+        button#addBtn {
+            padding: 12px 20px;
+            background-color: var(--tg-link);
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        ul {
+            list-style: none;
+            padding: 0;
+            width: 100%;
+        }
+
+        li {
+            background: var(--tg-secondary-bg);
+            margin-bottom: 10px;
+            padding: 12px;
+            border-radius: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: transform 0.1s;
+            border-left: 5px solid transparent;
+        }
+
+        /* Стиль для важных задач */
+        li.important {
+            border-left: 5px solid #ff4b4b; /* Красный маркер */
+            background: rgba(255, 75, 75, 0.1);
+        }
+
+        .delete-btn {
+            background: none;
+            border: none;
+            font-size: 18px;
+            cursor: pointer;
+            color: var(--tg-hint);
+        }
+
+        .task-text {
+            flex: 1;
+        }
+
+        .priority-tag {
+            font-size: 10px;
+            text-transform: uppercase;
+            margin-right: 8px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            background: var(--tg-hint);
+            color: #fff;
+        }
+    </style>
+</head>
+<body>
+
+    <h2>Мой Список Дел 🚀</h2>
+
+    <div class="input-container">
+        <div class="input-row">
+            <input type="text" id="taskInput" placeholder="Что купим/сделаем?">
+            <select id="prioritySelect">
+                <option value="normal">Обычное</option>
+                <option value="high">Важное 🔥</option>
+            </select>
+        </div>
+        <button id="addBtn">Добавить задачу</button>
     </div>
 
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <ul id="taskList"></ul>
+
     <script>
-        // Тут будет наша логика (см. Шаг 3)
+        const tg = window.Telegram.WebApp;
+        const addBtn = document.getElementById('addBtn');
+        const taskInput = document.getElementById('taskInput');
+        const prioritySelect = document.getElementById('prioritySelect');
+        const taskList = document.getElementById('taskList');
+
+        // Сообщаем Telegram, что приложение готово
+        tg.ready();
+        tg.expand();
+
+        // Настройка главной кнопки (внизу экрана)
+        tg.MainButton.setText("ОТПРАВИТЬ ОТЧЕТ БОТУ");
+        tg.MainButton.textColor = "#FFFFFF";
+        tg.MainButton.color = "#2ec126"; // Зеленый цвет
+
+        // Функция добавления задачи
+        addBtn.addEventListener('click', () => {
+            const text = taskInput.value.trim();
+            const priority = prioritySelect.value;
+
+            if (text === "") {
+                tg.showAlert("Введите текст задачи!");
+                return;
+            }
+
+            const li = document.createElement('li');
+            if (priority === 'high') li.classList.add('important');
+
+            li.innerHTML = `
+                <div class="task-text">
+                    ${priority === 'high' ? '<span class="priority-tag">Важное</span>' : ''}
+                    <span>${text}</span>
+                </div>
+                <button class="delete-btn">✕</button>
+            `;
+
+            // Удаление задачи
+            li.querySelector('.delete-btn').addEventListener('click', () => {
+                li.remove();
+                if (taskList.children.length === 0) tg.MainButton.hide();
+            });
+
+            taskList.appendChild(li);
+            taskInput.value = "";
+            
+            // Показываем кнопку отправки, если есть задачи
+            tg.MainButton.show();
+        });
+
+        // Логика нажатия на главную кнопку Телеграма
+        tg.onEvent('mainButtonClicked', function() {
+            const tasks = [];
+            document.querySelectorAll('#taskList li').forEach(li => {
+                tasks.push({
+                    text: li.querySelector('.task-text span:last-child').innerText,
+                    important: li.classList.contains('important')
+                });
+            });
+
+            // Отправляем данные в формате JSON
+            tg.sendData(JSON.stringify(tasks));
+        });
     </script>
 </body>
 </html>
-
